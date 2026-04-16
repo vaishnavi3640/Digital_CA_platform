@@ -2,6 +2,7 @@ import React, { useEffect, useState, useContext } from 'react';
 import axios from 'axios';
 import { AuthContext } from '../../context/AuthContext';
 import Sidebar from '../../components/Sidebar';
+import { Routes, Route } from 'react-router-dom';
 import io from 'socket.io-client';
 
 const ClientDashboard = () => {
@@ -83,33 +84,95 @@ const ClientDashboard = () => {
         </div>
 
         <div className="page-content">
-          <div style={{ display: 'grid', gridTemplateColumns: 'minmax(300px, 1fr) 2fr', gap: '1.5rem' }}>
-            
-            {/* Upload Area */}
-            <div className="table-container" style={{ padding: '1.5rem' }}>
-              <h2 style={{ marginBottom: '1rem', fontSize: '1.125rem' }}>Upload Document</h2>
-              <form onSubmit={handleUpload}>
-                <div className="form-group">
-                  <label>Document Title</label>
-                  <input type="text" className="form-input" value={uploadTitle} onChange={e => setUploadTitle(e.target.value)} required />
+          <Routes>
+            {/* Main / Default View: Show Everything together like original MVP */}
+            <Route path="/" element={
+              <div style={{ display: 'grid', gridTemplateColumns: 'minmax(300px, 1fr) 2fr', gap: '1.5rem' }}>
+                <div className="table-container" style={{ padding: '1.5rem', height: 'fit-content' }}>
+                  <h2 style={{ marginBottom: '1rem', fontSize: '1.125rem' }}>Quick Upload</h2>
+                  <form onSubmit={handleUpload}>
+                    <div className="form-group">
+                      <label>Document Title</label>
+                      <input type="text" className="form-input" value={uploadTitle} onChange={e => setUploadTitle(e.target.value)} required />
+                    </div>
+                    <div className="form-group">
+                      <label>Select File</label>
+                      <input type="file" className="form-input" onChange={e => setUploadFile(e.target.files[0])} required />
+                    </div>
+                    <button type="submit" className="btn btn-primary" style={{ width: '100%', justifyContent: 'center' }}>Upload Securely</button>
+                  </form>
                 </div>
-                <div className="form-group">
-                  <label>Select File</label>
-                  <input type="file" className="form-input" onChange={e => setUploadFile(e.target.files[0])} required />
+                
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+                  <div className="table-container">
+                    <div className="table-header"><h2>Recent Invoices</h2></div>
+                    <table>
+                      <thead><tr><th>Desc</th><th>Amount</th><th>Status</th></tr></thead>
+                      <tbody>
+                        {invoices.slice(0, 3).map(i => (
+                          <tr key={i._id}><td>{i.description}</td><td>${i.amount}</td><td><span className={`badge ${i.status}`}>{i.status.toUpperCase()}</span></td></tr>
+                        ))}
+                        {invoices.length === 0 && <tr><td colSpan="3">No invoices yet.</td></tr>}
+                      </tbody>
+                    </table>
+                  </div>
                 </div>
-                <button type="submit" className="btn btn-primary" style={{ width: '100%', justifyContent: 'center' }}>Upload Securely</button>
-              </form>
-            </div>
+              </div>
+            } />
 
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+            {/* Documents View */}
+            <Route path="/documents" element={
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+                <div className="table-container" style={{ padding: '1.5rem' }}>
+                  <h2 style={{ marginBottom: '1rem', fontSize: '1.125rem' }}>Upload New Document</h2>
+                  <form onSubmit={handleUpload} style={{ display: 'flex', gap: '1rem', alignItems: 'flex-end' }}>
+                    <div className="form-group" style={{ flex: 1, marginBottom: 0 }}>
+                      <label>Document Title</label>
+                      <input type="text" className="form-input" value={uploadTitle} onChange={e => setUploadTitle(e.target.value)} required />
+                    </div>
+                    <div className="form-group" style={{ flex: 1, marginBottom: 0 }}>
+                      <label>Select File</label>
+                      <input type="file" className="form-input" onChange={e => setUploadFile(e.target.files[0])} required />
+                    </div>
+                    <button type="submit" className="btn btn-primary" style={{ height: '42px' }}>Upload Securely</button>
+                  </form>
+                </div>
+
+                <div className="table-container">
+                  <div className="table-header">
+                    <h2>My Documents</h2>
+                  </div>
+                  <table>
+                    <thead>
+                      <tr>
+                        <th>Title</th>
+                        <th>Date Uploaded</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {documents.map(d => (
+                        <tr key={d._id}>
+                          <td><a href={`http://localhost:5000/${d.filePath}`} target="_blank" rel="noreferrer" style={{color: 'var(--primary)', textDecoration: 'none'}}>{d.title}</a></td>
+                          <td>{new Date(d.createdAt).toLocaleDateString()}</td>
+                        </tr>
+                      ))}
+                      {documents.length === 0 && <tr><td colSpan="2">No documents yet.</td></tr>}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            } />
+
+            {/* Invoices View */}
+            <Route path="/invoices" element={
               <div className="table-container">
                 <div className="table-header">
-                  <h2>Recent Invoices</h2>
+                  <h2>All Invoices</h2>
                 </div>
                 <table>
                   <thead>
                     <tr>
-                      <th>Desc</th>
+                      <th>Description</th>
                       <th>Amount</th>
                       <th>Due Date</th>
                       <th>Status</th>
@@ -136,32 +199,8 @@ const ClientDashboard = () => {
                   </tbody>
                 </table>
               </div>
-
-              <div className="table-container">
-                <div className="table-header">
-                  <h2>My Documents</h2>
-                </div>
-                <table>
-                  <thead>
-                    <tr>
-                      <th>Title</th>
-                      <th>Date</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {documents.map(d => (
-                      <tr key={d._id}>
-                        <td><a href={`http://localhost:5000/${d.filePath}`} target="_blank" rel="noreferrer" style={{color: 'var(--primary)', textDecoration: 'none'}}>{d.title}</a></td>
-                        <td>{new Date(d.createdAt).toLocaleDateString()}</td>
-                      </tr>
-                    ))}
-                    {documents.length === 0 && <tr><td colSpan="2">No documents yet.</td></tr>}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-
-          </div>
+            } />
+          </Routes>
         </div>
       </div>
     </div>
