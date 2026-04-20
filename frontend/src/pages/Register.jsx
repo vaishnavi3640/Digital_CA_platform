@@ -49,8 +49,8 @@ const Register = () => {
           </div>
           {role === 'client' && (
             <div className="form-group">
-              <label>Invite Code (CA's ID)</label>
-              <input type="text" className="form-input" value={inviteCode} onChange={e => setInviteCode(e.target.value)} />
+              <label>Admin's Name or Email</label>
+              <input type="text" className="form-input" value={inviteCode} onChange={e => setInviteCode(e.target.value)} placeholder="e.g. John Doe or admin@example.com" />
             </div>
           )}
           <button type="submit" className="btn btn-primary" style={{width: '100%', marginTop: '1rem', justifyContent: 'center'}}>

@@ -20,8 +20,15 @@ router.post('/register', async (req, res) => {
 
     let assignedAdmin = null;
     if (role === 'client' && inviteCode) {
-      // Very basic invite code system: inviteCode is just the admin's User ID
-      assignedAdmin = inviteCode;
+      // Find admin by name or email (since there is no username field)
+      const admin = await User.findOne({ 
+        role: 'admin', 
+        $or: [{ name: inviteCode }, { email: inviteCode }] 
+      });
+      if (!admin) {
+        return res.status(400).json({ message: 'No Admin found with that name or email' });
+      }
+      assignedAdmin = admin._id;
     }
 
     const user = await User.create({
